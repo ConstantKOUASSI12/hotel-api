@@ -1,0 +1,1 @@
+export { AdminError } from './admin.error.js'

@@ -1,0 +1,309 @@
+tags:
+  - name: Admin
+    description: Routes d'administration pour la gestion des clients et réservations
+
+paths:
+  /api/admin/getAllClient:
+    get:
+      summary: Récupère la liste de tous les clients
+      tags: [Admin]
+      responses:
+        '200':
+          description: Liste des clients renvoyée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Client'
+
+
+  /api/admin/findClientById/{id}:
+    get:
+      summary: Trouve un client par son ID
+      tags: [Admin]
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID du client
+      responses:
+        '200':
+          description: Retourne les informations trouvées
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Client'
+        '404':
+          description: Client non trouvé
+
+
+  /api/admin/createClient:
+    post:
+      summary: Créer un nouveau client
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NouveauClient'
+      responses:
+        '201':
+          description: Client créé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Client'
+        '400':
+          description: Erreur retournée par Zod
+
+
+  /api/admin/updateClient/{id}:
+    put:
+      summary: Met à jour un client existant
+      tags: [Admin]
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID du client à mettre à jour
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateClient'
+      responses:
+        '200':
+          description: Client mis à jour
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Client'
+        '400':
+          description: Erreur retournée par Zod
+        '409':
+          description: Le client possède déjà des attributs attribués
+
+
+  /api/admin/createReservation:
+    post:
+      summary: Crée une réservation pour un client
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                clientId:
+                  type: integer
+                  description: ID client
+                  example: 1
+                roomId:
+                  type: integer
+                  description: ID chambre
+                  example: 2
+      responses:
+        '201':
+          description: Réservation créée
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/ReservationRoom'
+        '401':
+          description: Veuillez vérifier vos champs
+        '404':
+          description: Ressource introuvable
+        '409':
+          description: Impossible de réserver cette chambre, elle est déjà occupée
+
+
+  /api/admin/cancelReservation:
+    post:
+      summary: Annule une réservation
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                clientId:
+                  type: integer
+                  description: ID client
+                  example: 1
+                roomId:
+                  type: integer
+                  description: ID chambre
+                  example: 2
+      responses:
+        '200':
+          description: Réservation annulée
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/CancelReservationRoom'
+        '400':
+          description: Impossible d'annuler la reservation parce qu'elle n'est pas attribuée à ce client
+        '404':
+          description: Ressource introuvable
+        '409':
+          description: Chambre non réservée pour être annulée
+  
+components:
+  schemas:
+    Client:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Dupont"
+        email:
+          type: string
+          example: "dupont@mail.com"
+        phone:
+          type: string
+          example: "+1-555-555"
+    
+    NouveauClient:
+      type: object
+      required:
+        - name
+        - email
+        - phone
+      properties:
+        name:
+          type: string
+          example: "Dupont"
+          description: "Nom du client"
+          minLength: 10
+        email:
+          type: string
+          example: "dupont@mail.com"
+          description: "L'adresse email du client"
+          format: email
+        phone:
+          type: string
+          example: "+1-555-555"
+          description: "Le numéro de téléphone du client"
+          maxLength: 10
+
+    UpdateClient:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Dupont"
+          minLength: 10
+        email:
+          type: string
+          example: "dupont@mail.com"
+          format: email
+        phone:
+          type: string
+          example: "+1-555-555"
+          maxLength: 10
+
+    ReservationRoom:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: ID de la chambre
+        number:
+          type: integer
+          example: 101
+          description: Numéro de la chambre
+        name:
+          type: string
+          example: Standard Room
+          description: Nom de la chambre
+        description:
+          type: string
+          example: A comfortable room with two double beds and a private bathroom
+          description: Description de la chambre
+        capacity:
+          type: integer
+          example: 20
+          description: Capacité de la chambre
+        price:
+          type: integer
+          example: 180
+          description: Prix de la chambre
+        reserved:
+          type: boolean
+          description: statut de la réservation
+        clientId:
+          type: integer
+          example: 2
+          description: ID du client ayant fait la reservation
+        reservedAt:
+          type: string
+          example: 2025-11-12T17:48:05.080Z
+          description: Date de reservation
+        cancelReservationAt:
+          type: string
+          example: null
+          description: Date d'annulation de la reservation
+
+    CancelReservationRoom:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: ID de la chambre
+        number:
+          type: integer
+          example: 101
+          description: Numéro de la chambre
+        name:
+          type: string
+          example: Standard Room
+          description: Nom de la chambre
+        description:
+          type: string
+          example: A comfortable room with two double beds and a private bathroom
+          description: Description de la chambre
+        capacity:
+          type: integer
+          example: 20
+          description: Capacité de la chambre
+        price:
+          type: integer
+          example: 180
+          description: Prix de la chambre
+        reserved:
+          type: boolean
+          example: false
+          description: statut de la réservation
+        clientId:
+          type: integer
+          example: null
+          description: ID du client ayant fait la reservation
+        reservedAt:
+          type: string
+          example: null
+          description: Date de reservation
+        cancelReservationAt:
+          type: string
+          example: 2025-11-12T17:48:05.080Z
+          description: Date d'annulation de la reservation
+        
