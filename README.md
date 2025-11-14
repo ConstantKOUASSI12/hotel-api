@@ -14,9 +14,9 @@ Une API RESTful permettant de mettre en place un système de réservation d'un h
 ## Installation
 
 1. **Cloner le dépôt :**
-```bash
+```bash```
 git clone https://github.com/ConstantKOUASSI12/hotel-api.git
-cd hotel-api```
+cd hotel-api
 
 2. **Installer les dépendances :**
 npm install
